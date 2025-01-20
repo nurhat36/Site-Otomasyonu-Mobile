@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';  // Firestore importu
 import 'package:flutter/material.dart';
 
 import 'HomeScreen.dart';
+import 'UserType.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,9 +73,9 @@ class _LoginPageState extends State<LoginPage> {
 
   // Kayıt ekranına yönlendirme fonksiyonu
   void _navigateToSignUp() {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const SignUpPage()),
+      MaterialPageRoute(builder: (context) => UserType()),
     );
   }
 
