@@ -1,0 +1,1 @@
+ C:\\ornekler\\site_otomasyonu2\\.dart_tool\\flutter_build\\c2733768815d69ab30792e2c70928358\\native_assets.yaml: 
