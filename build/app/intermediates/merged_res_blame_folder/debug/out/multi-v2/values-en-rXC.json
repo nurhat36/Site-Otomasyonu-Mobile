@@ -4,24 +4,7 @@
             "outputFile": "com.example.site_otomasyonu2.app-mergeDebugResources-35:/values-en-rXC/values-en-rXC.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Nurhat\\.gradle\\caches\\transforms-3\\3d35988930fc72d96716d696b66ad4ed\\transformed\\browser-1.4.0\\res\\values-en-rXC\\values-en-rXC.xml",
-                    "from": {
-                        "startLines": "2,3,4,5",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "55,255,454,665",
-                        "endColumns": "199,198,210,201",
-                        "endOffsets": "250,449,660,862"
-                    },
-                    "to": {
-                        "startLines": "11,12,13,14",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "1913,2113,2312,2523",
-                        "endColumns": "199,198,210,201",
-                        "endOffsets": "2108,2307,2518,2720"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\Nurhat\\.gradle\\caches\\transforms-3\\3cfb41fbcf62a84db0151e8e3b99acda\\transformed\\core-1.13.1\\res\\values-en-rXC\\values-en-rXC.xml",
+                    "source": "C:\\Users\\KADIR\\.gradle\\caches\\transforms-3\\3cfb41fbcf62a84db0151e8e3b99acda\\transformed\\core-1.13.1\\res\\values-en-rXC\\values-en-rXC.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -38,7 +21,24 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Nurhat\\.gradle\\caches\\transforms-3\\4fadd69b20e8c0156115a2ea0e0c54ba\\transformed\\jetified-credentials-1.2.0-rc01\\res\\values-en-rXC\\values-en-rXC.xml",
+                    "source": "C:\\Users\\KADIR\\.gradle\\caches\\transforms-3\\3d35988930fc72d96716d696b66ad4ed\\transformed\\browser-1.4.0\\res\\values-en-rXC\\values-en-rXC.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,255,454,665",
+                        "endColumns": "199,198,210,201",
+                        "endOffsets": "250,449,660,862"
+                    },
+                    "to": {
+                        "startLines": "11,12,13,14",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "1913,2113,2312,2523",
+                        "endColumns": "199,198,210,201",
+                        "endOffsets": "2108,2307,2518,2720"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\KADIR\\.gradle\\caches\\transforms-3\\4fadd69b20e8c0156115a2ea0e0c54ba\\transformed\\jetified-credentials-1.2.0-rc01\\res\\values-en-rXC\\values-en-rXC.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",

@@ -4,24 +4,17 @@
             "outputFile": "com.example.site_otomasyonu2.app-mergeDebugResources-35:/values-mr/values-mr.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Nurhat\\.gradle\\caches\\transforms-3\\3d35988930fc72d96716d696b66ad4ed\\transformed\\browser-1.4.0\\res\\values-mr\\values-mr.xml",
+                    "source": "C:\\Users\\KADIR\\.gradle\\caches\\transforms-3\\4fadd69b20e8c0156115a2ea0e0c54ba\\transformed\\jetified-credentials-1.2.0-rc01\\res\\values-mr\\values-mr.xml",
                     "from": {
-                        "startLines": "2,3,4,5",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "55,156,257,368",
-                        "endColumns": "100,100,110,101",
-                        "endOffsets": "151,252,363,465"
-                    },
-                    "to": {
-                        "startLines": "29,30,31,32",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "3169,3270,3371,3482",
-                        "endColumns": "100,100,110,101",
-                        "endOffsets": "3265,3366,3477,3579"
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,166",
+                        "endColumns": "110,111",
+                        "endOffsets": "161,273"
                     }
                 },
                 {
-                    "source": "C:\\Users\\Nurhat\\.gradle\\caches\\transforms-3\\3cfb41fbcf62a84db0151e8e3b99acda\\transformed\\core-1.13.1\\res\\values-mr\\values-mr.xml",
+                    "source": "C:\\Users\\KADIR\\.gradle\\caches\\transforms-3\\3cfb41fbcf62a84db0151e8e3b99acda\\transformed\\core-1.13.1\\res\\values-mr\\values-mr.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -38,17 +31,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Nurhat\\.gradle\\caches\\transforms-3\\4fadd69b20e8c0156115a2ea0e0c54ba\\transformed\\jetified-credentials-1.2.0-rc01\\res\\values-mr\\values-mr.xml",
-                    "from": {
-                        "startLines": "2,3",
-                        "startColumns": "4,4",
-                        "startOffsets": "55,166",
-                        "endColumns": "110,111",
-                        "endOffsets": "161,273"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\Nurhat\\.gradle\\caches\\transforms-3\\6be2b7a62740691776a1a608c33c40c9\\transformed\\jetified-play-services-basement-18.5.0\\res\\values-mr\\values.xml",
+                    "source": "C:\\Users\\KADIR\\.gradle\\caches\\transforms-3\\6be2b7a62740691776a1a608c33c40c9\\transformed\\jetified-play-services-basement-18.5.0\\res\\values-mr\\values.xml",
                     "from": {
                         "startLines": "4",
                         "startColumns": "0",
@@ -65,7 +48,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Nurhat\\.gradle\\caches\\transforms-3\\5f89ea82bb8999c702f5fbd789a90481\\transformed\\jetified-play-services-base-18.5.0\\res\\values-mr\\values.xml",
+                    "source": "C:\\Users\\KADIR\\.gradle\\caches\\transforms-3\\5f89ea82bb8999c702f5fbd789a90481\\transformed\\jetified-play-services-base-18.5.0\\res\\values-mr\\values.xml",
                     "from": {
                         "startLines": "4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
                         "startColumns": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
@@ -79,6 +62,23 @@
                         "startOffsets": "1010,1117,1285,1408,1520,1665,1786,1894,2134,2284,2392,2546,2670,2809,2962,3022,3088",
                         "endColumns": "106,167,122,111,144,120,107,96,149,107,153,123,138,152,59,65,80",
                         "endOffsets": "1112,1280,1403,1515,1660,1781,1889,1986,2279,2387,2541,2665,2804,2957,3017,3083,3164"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\KADIR\\.gradle\\caches\\transforms-3\\3d35988930fc72d96716d696b66ad4ed\\transformed\\browser-1.4.0\\res\\values-mr\\values-mr.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,156,257,368",
+                        "endColumns": "100,100,110,101",
+                        "endOffsets": "151,252,363,465"
+                    },
+                    "to": {
+                        "startLines": "29,30,31,32",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "3169,3270,3371,3482",
+                        "endColumns": "100,100,110,101",
+                        "endOffsets": "3265,3366,3477,3579"
                     }
                 }
             ]

@@ -4,7 +4,7 @@
             "outputFile": "com.example.site_otomasyonu2.app-mergeDebugResources-35:/values-night-v8/values-night-v8.xml",
             "map": [
                 {
-                    "source": "C:\\ornekler\\site_otomasyonu2\\android\\app\\src\\main\\res\\values-night\\styles.xml",
+                    "source": "C:\\Users\\KADIR\\Site-Otomasyonu-Mobile\\android\\app\\src\\main\\res\\values-night\\styles.xml",
                     "from": {
                         "startLines": "3,14",
                         "startColumns": "4,4",

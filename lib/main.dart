@@ -61,14 +61,26 @@ class _LoginPageState extends State<LoginPage> {
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()), // HomeScreen burada ana ekranınız
       );
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'user-not-found') {
+        message = "Kullanıcı bulunamadı.";
+      } else if (e.code == 'wrong-password') {
+        message = "Yanlış şifre.";
+      } else {
+        message = "Bir hata oluştu: ${e.message}";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Hata: $message")),
+      );
+      debugPrint("Giriş hatası: $message");
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Hata: $e")),
+        SnackBar(content: Text("Bilinmeyen hata: $e")),
       );
       debugPrint("Giriş hatası: $e");
     }
   }
-
 
   // Kayıt ekranına yönlendirme fonksiyonu
   void _navigateToSignUp() {
@@ -145,9 +157,22 @@ class _SignUpPageState extends State<SignUpPage> {
 
       // Kayıttan sonra giriş sayfasına yönlendirme
       Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'weak-password') {
+        message = "Zayıf şifre.";
+      } else if (e.code == 'email-already-in-use') {
+        message = "Bu e-posta zaten kullanılıyor.";
+      } else {
+        message = "Bir hata oluştu: ${e.message}";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Hata: $message")),
+      );
+      debugPrint("Kayıt hatası: $message");
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Hata: $e")),
+        SnackBar(content: Text("Bilinmeyen hata: $e")),
       );
       debugPrint("Kayıt hatası: $e");
     }
