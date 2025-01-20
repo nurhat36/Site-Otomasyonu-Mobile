@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';  // Firebase Auth importu
 import 'package:cloud_firestore/cloud_firestore.dart';  // Firestore importu
 import 'package:flutter/material.dart';
 
+import 'HomeScreen.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -53,6 +55,12 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(content: Text("Giriş başarılı!")),
       );
       debugPrint("Giriş başarılı!");
+
+      // Giriş başarılı olduğunda ana ekrana yönlendir
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()), // HomeScreen burada ana ekranınız
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Hata: $e")),
@@ -60,6 +68,7 @@ class _LoginPageState extends State<LoginPage> {
       debugPrint("Giriş hatası: $e");
     }
   }
+
 
   // Kayıt ekranına yönlendirme fonksiyonu
   void _navigateToSignUp() {
