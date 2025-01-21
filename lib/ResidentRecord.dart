@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ResidentRecord extends StatelessWidget {
   // TextController'lar
@@ -50,7 +51,7 @@ class ResidentRecord extends StatelessWidget {
 
             // Kaydol Butonu
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 String binaNo = binaNoController.text;
                 String daireNo = daireNoController.text;
                 String sifre = sifreController.text;
@@ -60,14 +61,52 @@ class ResidentRecord extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Lütfen tüm alanları doldurun!')),
                   );
-                } else {
-                  // Kayıt başarılı mesajı
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Kayıt başarılı!')),
-                  );
-                  // Kayıt sonrası giriş ekranına dön
-                  Navigator.pop(context);
+                  return;
                 }
+
+                // Firestore'da yönetici tarafından bina kayıtlı mı kontrol et
+                QuerySnapshot managerSnapshot = await FirebaseFirestore.instance
+                    .collection('managers')
+                    .where('binaNo', isEqualTo: binaNo)
+                    .get();
+
+                if (managerSnapshot.docs.isEmpty) {
+                  // Eğer bina yönetici tarafından kayıtlı değilse uyarı ver
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Bu bina yönetici tarafından kayıtlı değil!')),
+                  );
+                  return;
+                }
+
+                // Firestore'da aynı daire numarasıyla kayıtlı bir sakini kontrol et
+                QuerySnapshot residentSnapshot = await FirebaseFirestore.instance
+                    .collection('residents')
+                    .where('binaNo', isEqualTo: binaNo)
+                    .where('daireNo', isEqualTo: daireNo)
+                    .get();
+
+                if (residentSnapshot.docs.isNotEmpty) {
+                  // Eğer aynı daire numarasıyla bir kayıt varsa uyarı ver
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Bu daire zaten kayıtlı!')),
+                  );
+                  return;
+                }
+
+                // Firestore'a yeni sakini ekle
+                await FirebaseFirestore.instance.collection('residents').add({
+                  'binaNo': binaNo,
+                  'daireNo': daireNo,
+                  'sifre': sifre,
+                });
+
+                // Kayıt başarılı mesajı
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Kayıt başarılı!')),
+                );
+
+                // Kayıt sonrası giriş ekranına dön
+                Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
               child: Text('Kaydol', style: TextStyle(color: Colors.white)),

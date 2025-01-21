@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ResidentRecord.dart'; // Bina sakini kayıt ekranı
 
 class ResidentLogin extends StatelessWidget {
@@ -53,7 +54,7 @@ class ResidentLogin extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     String binaNo = binaNoController.text;
                     String daireNo = daireNoController.text;
                     String sifre = sifreController.text;
@@ -63,15 +64,29 @@ class ResidentLogin extends StatelessWidget {
                         SnackBar(content: Text('Lütfen tüm alanları doldurun!')),
                       );
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Giriş başarılı!')),
-                      );
+                      // Firestore'dan veri çekme ve doğrulama
+                      QuerySnapshot snapshot = await FirebaseFirestore.instance
+                          .collection('residents')
+                          .where('binaNo', isEqualTo: binaNo)
+                          .where('daireNo', isEqualTo: daireNo)
+                          .where('sifre', isEqualTo: sifre)
+                          .get();
+
+                      if (snapshot.docs.isNotEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Giriş başarılı!')),
+                        );
+                        // Giriş başarılı işlemleri burada yapılabilir
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Bilgiler yanlış veya kullanıcı bulunamadı!')),
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                   child: Text('Giriş Yap', style: TextStyle(color: Colors.white)),
                 ),
-
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ManagerRecord extends StatelessWidget {
   final TextEditingController binaNoController = TextEditingController();
@@ -14,7 +15,6 @@ class ManagerRecord extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Bina No Alanı
             TextField(
               controller: binaNoController,
               keyboardType: TextInputType.number,
@@ -24,8 +24,6 @@ class ManagerRecord extends StatelessWidget {
               ),
             ),
             SizedBox(height: 12),
-
-            // Daire Sayısı Alanı
             TextField(
               controller: daireSayisiController,
               keyboardType: TextInputType.number,
@@ -35,8 +33,6 @@ class ManagerRecord extends StatelessWidget {
               ),
             ),
             SizedBox(height: 12),
-
-            // Bina Şifresi Alanı
             TextField(
               controller: binaSifresiController,
               obscureText: true,
@@ -46,26 +42,44 @@ class ManagerRecord extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
-
-            // Kaydol Butonu
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 String binaNo = binaNoController.text;
                 String daireSayisi = daireSayisiController.text;
                 String binaSifresi = binaSifresiController.text;
 
                 if (binaNo.isEmpty || daireSayisi.isEmpty || binaSifresi.isEmpty) {
-                  // Eğer alanlar boşsa hata mesajı göster
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Lütfen tüm alanları doldurun!')),
                   );
-                } else {
-                  // Kayıt başarılıysa mesaj göster
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Kayıt başarılı!')),
-                  );
-                  Navigator.pop(context); // Kayıt sonrası giriş ekranına dön
+                  return;
                 }
+
+                // Firestore'da aynı bina numarasıyla bir yönetici kayıtlı mı kontrol et
+                QuerySnapshot managerSnapshot = await FirebaseFirestore.instance
+                    .collection('managers')
+                    .where('binaNo', isEqualTo: binaNo)
+                    .get();
+
+                if (managerSnapshot.docs.isNotEmpty) {
+                  // Eğer aynı bina numarasıyla bir kayıt varsa uyarı ver
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Bu bina zaten kayıtlı!')),
+                  );
+                  return;
+                }
+
+                // Firestore'a yeni yönetici ekle
+                await FirebaseFirestore.instance.collection('managers').add({
+                  'binaNo': binaNo,
+                  'daireSayisi': daireSayisi,
+                  'binaSifresi': binaSifresi,
+                });
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Kayıt başarılı!')),
+                );
+                Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
               child: Text('Kaydol', style: TextStyle(color: Colors.white)),

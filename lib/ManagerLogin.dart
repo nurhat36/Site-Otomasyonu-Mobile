@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:site_otomasyonu2/HomeScreen.dart';
 import 'ManagerRecord.dart'; // Yönetici Kayıt Ekranı dosyasını ekledik
 
 class ManagerLogin extends StatelessWidget {
@@ -42,8 +44,33 @@ class ManagerLogin extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      print("Giriş Yapıldı: ${binaNoController.text}");
+                    onPressed: () async {
+                      String binaNo = binaNoController.text;
+                      String binaSifresi = sifreController.text;
+
+                      // Firestore'dan veriyi kontrol et
+                      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+                          .collection('managers')
+                          .where('binaNo', isEqualTo: binaNo)
+                          .where('binaSifresi', isEqualTo: binaSifresi)
+                          .get();
+
+                      if (querySnapshot.docs.isNotEmpty) {
+                        // Giriş başarılı
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Giriş başarılı!')),
+                        );
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                        );
+                        // Burada giriş sonrası yönlendirme yapılabilir
+                      } else {
+                        // Hatalı giriş
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Hatalı Bina No veya Şifre!')),
+                        );
+                      }
                     },
                     child: Text('Giriş Yap'),
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:site_otomasyonu2/UserType.dart';
 import 'HomeScreen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -78,7 +79,10 @@ class _LoginScreenState extends State<LoginScreen> {
             TextButton(
               onPressed: () {
                 // Kayıt ekranına yönlendirme
-                Navigator.pushNamed(context, '/register');
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserType()),
+                );
               },
               child: const Text('Hesabınız yok mu? Kayıt olun.'),
             ),
