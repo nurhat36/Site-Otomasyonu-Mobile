@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ResidentRecord extends StatelessWidget {
+class ResidentRecord extends StatefulWidget {
+  @override
+  _ResidentRecordState createState() => _ResidentRecordState();
+}
+
+class _ResidentRecordState extends State<ResidentRecord> {
   // TextController'lar
   final TextEditingController binaNoController = TextEditingController();
   final TextEditingController daireNoController = TextEditingController();
   final TextEditingController sifreController = TextEditingController();
+
+  bool _isPasswordVisible = false; // Şifre görünürlüğünü kontrol eden değişken
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +48,20 @@ class ResidentRecord extends StatelessWidget {
             // Şifre Alanı
             TextField(
               controller: sifreController,
-              obscureText: true,
+              obscureText: !_isPasswordVisible, // Şifre görünürlüğünü ayarla
               decoration: InputDecoration(
                 labelText: 'Şifre',
                 border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible; // Durumu değiştir
+                    });
+                  },
+                ),
               ),
             ),
             SizedBox(height: 20),

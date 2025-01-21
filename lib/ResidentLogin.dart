@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ResidentRecord.dart'; // Bina sakini kayıt ekranı
 
-class ResidentLogin extends StatelessWidget {
+class ResidentLogin extends StatefulWidget {
+  @override
+  _ResidentLoginState createState() => _ResidentLoginState();
+}
+
+class _ResidentLoginState extends State<ResidentLogin> {
   final TextEditingController binaNoController = TextEditingController();
   final TextEditingController daireNoController = TextEditingController();
   final TextEditingController sifreController = TextEditingController();
+
+  bool _isPasswordVisible = false; // Şifre görünürlüğünü kontrol eden değişken
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +48,20 @@ class ResidentLogin extends StatelessWidget {
             // Şifre Alanı
             TextField(
               controller: sifreController,
-              obscureText: true,
+              obscureText: !_isPasswordVisible, // Şifre görünürlüğünü ayarla
               decoration: InputDecoration(
                 labelText: 'Şifre',
                 border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible; // Durumu değiştir
+                    });
+                  },
+                ),
               ),
             ),
             SizedBox(height: 20),

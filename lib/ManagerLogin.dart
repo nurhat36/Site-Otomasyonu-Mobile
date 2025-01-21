@@ -3,9 +3,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:site_otomasyonu2/HomeScreen.dart';
 import 'ManagerRecord.dart'; // Yönetici Kayıt Ekranı dosyasını ekledik
 
-class ManagerLogin extends StatelessWidget {
+class ManagerLogin extends StatefulWidget {
+  @override
+  _ManagerLoginState createState() => _ManagerLoginState();
+}
+
+class _ManagerLoginState extends State<ManagerLogin> {
   final TextEditingController binaNoController = TextEditingController();
   final TextEditingController sifreController = TextEditingController();
+
+  bool _isPasswordVisible = false; // Şifre görünürlüğünü kontrol eden değişken
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +37,20 @@ class ManagerLogin extends StatelessWidget {
             // Şifre Alanı
             TextField(
               controller: sifreController,
-              obscureText: true,
+              obscureText: !_isPasswordVisible, // Şifre görünürlüğünü ayarla
               decoration: InputDecoration(
                 labelText: 'Bina Şifresi',
                 border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible; // Durumu değiştir
+                    });
+                  },
+                ),
               ),
             ),
             SizedBox(height: 20),
