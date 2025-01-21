@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ResidentRecord.dart'; // Bina sakini kayıt ekranı
+import 'ResidentScreen.dart';
 
 class ResidentLogin extends StatefulWidget {
   @override
@@ -94,6 +95,10 @@ class _ResidentLoginState extends State<ResidentLogin> {
                           SnackBar(content: Text('Giriş başarılı!')),
                         );
                         // Giriş başarılı işlemleri burada yapılabilir
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => ResidentScreen()),
+                        );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Bilgiler yanlış veya kullanıcı bulunamadı!')),
