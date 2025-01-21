@@ -65,32 +65,49 @@ class _ManagerLoginState extends State<ManagerLogin> {
                       String binaNo = binaNoController.text;
                       String binaSifresi = sifreController.text;
 
-                      // Firestore'dan veriyi kontrol et
-                      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-                          .collection('managers')
-                          .where('binaNo', isEqualTo: binaNo)
-                          .where('binaSifresi', isEqualTo: binaSifresi)
-                          .get();
+                      try {
+                        // Firestore'dan veriyi kontrol et
+                        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+                            .collection('managers')
+                            .where('binaNo', isEqualTo: binaNo)
+                            .where('binaSifresi', isEqualTo: binaSifresi)
+                            .get();
 
-                      if (querySnapshot.docs.isNotEmpty) {
-                        // Giriş başarılı
+                        if (querySnapshot.docs.isNotEmpty) {
+                          // Giriş başarılı
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Giriş başarılı!')),
+                          );
+
+                          // Giriş yapılan kullanıcı bilgilerini al
+                          var managerData = querySnapshot.docs.first.data() as Map<String, dynamic>;
+
+                          // HomeScreen'e geçiş yap ve gerekli verileri aktar
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HomeScreen(
+                                binaNo: managerData['binaNo'] ?? '',
+                                daireSayisi: managerData['daireSayisi']?.toString() ?? '',
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Hatalı giriş
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Hatalı Bina No veya Şifre!')),
+                          );
+                        }
+                      } catch (e) {
+                        // Hata durumunda kullanıcıyı bilgilendir
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Giriş başarılı!')),
-                        );
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomeScreen()),
-                        );
-                        // Burada giriş sonrası yönlendirme yapılabilir
-                      } else {
-                        // Hatalı giriş
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Hatalı Bina No veya Şifre!')),
+                          SnackBar(content: Text('Bir hata oluştu: ${e.toString()}')),
                         );
                       }
                     },
                     child: Text('Giriş Yap'),
                   ),
+
                 ),
                 SizedBox(width: 10),
                 Expanded(

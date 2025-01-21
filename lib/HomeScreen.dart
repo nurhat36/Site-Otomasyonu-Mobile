@@ -4,10 +4,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'LoginScreen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String binaNo;
+  final String daireSayisi;
+  const HomeScreen({
+    super.key,
+    required this.binaNo,
+    required this.daireSayisi,
+  });
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _HomeScreenState createState() => _HomeScreenState(binaNo: binaNo,daireSayisi: daireSayisi,);
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -16,27 +22,27 @@ class _HomeScreenState extends State<HomeScreen> {
   User? user;
   String binaNo = "Yükleniyor...";
   String daireSayisi = "Yükleniyor...";
+  _HomeScreenState({
+    required this.binaNo,
+    required this.daireSayisi,
+  });
 
   @override
   void initState() {
     super.initState();
-    user = _auth.currentUser;
-    _getBinaBilgileri();
-  }
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
 
-  Future<void> _getBinaBilgileri() async {
-    if (user != null) {
-      DocumentSnapshot<Map<String, dynamic>> doc =
-      await _firestore.collection("binalar").doc(user!.uid).get();
-
-      if (doc.exists) {
+      } else {
         setState(() {
-          binaNo = doc.data()?["binaNo"] ?? "Bilinmiyor";
-          daireSayisi = doc.data()?["daireSayisi"]?.toString() ?? "Bilinmiyor";
+          this.user = user;
         });
+
       }
-    }
+    });
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icon(Icons.account_circle, size: 60, color: Colors.white),
                   SizedBox(height: 10),
                   Text(
-                    "Yönetici", // Kullanıcı adını "Yönetici" olarak gösteriyoruz
+                    "Yönetici",
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ],
@@ -66,8 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: Icon(Icons.person),
               title: Text('Hesap Bilgileri'),
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => HesapBilgileriScreen(userEmail: user?.email ?? "Bilinmiyor")));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        HesapBilgileriScreen(userEmail: user?.email ?? "Bilinmiyor"),
+                  ),
+                );
               },
             ),
             ListTile(
@@ -106,8 +117,15 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: Icon(Icons.info),
               title: Text('Bina Hakkında'),
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => BinaHakkindaScreen(binaNo: binaNo, daireSayisi: daireSayisi)));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BinaHakkindaScreen(
+                      binaNo: binaNo,
+                      daireSayisi: daireSayisi,
+                    ),
+                  ),
+                );
               },
             ),
             Divider(),
@@ -198,19 +216,32 @@ class BinaHakkindaScreen extends StatelessWidget {
   final String binaNo;
   final String daireSayisi;
 
-  BinaHakkindaScreen({required this.binaNo, required this.daireSayisi});
+  // Constructor with required parameters
+  const BinaHakkindaScreen({
+    super.key,
+    required this.binaNo,
+    required this.daireSayisi,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Bina Hakkında')),
+      appBar: AppBar(
+        title: const Text('Bina Hakkında'),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Bina Numarası: $binaNo', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 10),
-            Text('Daire Sayısı: $daireSayisi', style: TextStyle(fontSize: 18)),
+            Text(
+              'Bina Numarası: $binaNo',
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Daire Sayısı: $daireSayisi',
+              style: const TextStyle(fontSize: 18),
+            ),
           ],
         ),
       ),

@@ -58,10 +58,7 @@ class _LoginPageState extends State<LoginPage> {
       debugPrint("Giriş başarılı!");
 
       // Giriş başarılı olduğunda ana ekrana yönlendir
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()), // HomeScreen burada ana ekranınız
-      );
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Hata: $e")),
