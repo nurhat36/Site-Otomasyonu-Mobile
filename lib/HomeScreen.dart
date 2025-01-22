@@ -174,6 +174,92 @@ class GelirScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Gelir')),
       body: Center(child: Text('Gelir bilgileri buraya gelecek')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => GelirEkleScreen()),
+          );
+        },
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class GelirEkleScreen extends StatefulWidget {
+  @override
+  _GelirEkleScreenState createState() => _GelirEkleScreenState();
+}
+
+class _GelirEkleScreenState extends State<GelirEkleScreen> {
+  final TextEditingController miktarController = TextEditingController();
+  String? seciliDaire;
+  List<String> daireler = ['101', '102', '103', '104']; // Firebase'den çekilecek
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Gelir Ekle')),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: miktarController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Gelir Miktarı',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: seciliDaire,
+              items: daireler.map((String daire) {
+                return DropdownMenuItem<String>(
+                  value: daire,
+                  child: Text('Daire No: $daire'),
+                );
+              }).toList(),
+              onChanged: (String? yeniDeger) {
+                setState(() {
+                  seciliDaire = yeniDeger;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Daire No',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                if (miktarController.text.isEmpty || seciliDaire == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Lütfen tüm alanları doldurun!')),
+                  );
+                  return;
+                }
+
+                // Firebase'e veri ekleme işlemi
+                await FirebaseFirestore.instance.collection('gelirler').add({
+                  'miktar': miktarController.text,
+                  'daireNo': seciliDaire,
+                  'tarih': Timestamp.now(),
+                });
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Gelir başarıyla eklendi!')),
+                );
+
+                Navigator.pop(context); // Ekranı kapat
+              },
+              child: Text('Onayla'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
