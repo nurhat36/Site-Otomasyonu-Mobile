@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -265,14 +267,231 @@ class _GelirEkleScreenState extends State<GelirEkleScreen> {
 }
 
 // ✅ Gider Sayfası
-class GiderScreen extends StatelessWidget {
+class GiderScreen extends StatefulWidget {
+  @override
+  _GiderScreenState createState() => _GiderScreenState();
+}
+
+class _GiderScreenState extends State<GiderScreen> {
+  final TextEditingController kayitNoController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Gider')),
-      body: Center(child: Text('Gider bilgileri buraya gelecek')),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: kayitNoController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: 'Kayıt Numarası'),
+                  ),
+                ),
+                SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    if (kayitNoController.text.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => DekontGoruntuleScreen(kayitNo: kayitNoController.text),
+                      ),
+                    );
+                  }
+                  },
+                  child: Text('Dekont Görüntüle'),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder(
+              stream: FirebaseFirestore.instance.collection('giderler').snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+                return ListView(
+                  children: snapshot.data!.docs.map((doc) {
+                    return ListTile(
+                      title: Text("Kayıt No: ${doc.id} - ${doc['tur']}"),
+                      subtitle: Text("Miktar: ${doc['miktar']} TL"),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => GiderEkleScreen()));
+        },
+        child: Icon(Icons.add),
+      ),
     );
   }
+}
+
+class GiderEkleScreen extends StatefulWidget {
+  @override
+  _GiderEkleScreenState createState() => _GiderEkleScreenState();
+}
+
+class _GiderEkleScreenState extends State<GiderEkleScreen> {
+  final TextEditingController miktarController = TextEditingController();
+  final TextEditingController digerAciklamaController = TextEditingController();
+  String? seciliTur;
+  String? dekontUrl;
+
+  List<Map<String, dynamic>> giderTurleri = [
+    {'isim': 'Elektrik', 'icon': Icons.flash_on},
+    {'isim': 'Su', 'icon': Icons.water_drop},
+    {'isim': 'Doğalgaz', 'icon': Icons.local_fire_department},
+    {'isim': 'Bahçıvan', 'icon': Icons.grass},
+    {'isim': 'Asansör Bakımı', 'icon': Icons.elevator},
+    {'isim': 'Diğer', 'icon': Icons.more_horiz},
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Gider Ekle')),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            DropdownButtonFormField<String>(
+              value: seciliTur,
+              items: giderTurleri.map((tur) {
+                return DropdownMenuItem<String>(
+                  value: tur['isim'],
+                  child: Row(
+                    children: [
+                      Icon(tur['icon']),
+                      SizedBox(width: 10),
+                      Text(tur['isim']),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (String? yeniDeger) {
+                setState(() {
+                  seciliTur = yeniDeger;
+                });
+              },
+              decoration: InputDecoration(labelText: 'Gider Türü', border: OutlineInputBorder()),
+            ),
+            if (seciliTur == 'Diğer')
+              TextField(
+                controller: digerAciklamaController,
+                decoration: InputDecoration(labelText: 'Açıklama', border: OutlineInputBorder()),
+              ),
+            SizedBox(height: 12),
+            TextField(
+              controller: miktarController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: 'Gider Miktarı', border: OutlineInputBorder()),
+            ),
+            SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => DekontYukleScreen())).then((value) {
+                if (value != null) setState(() => dekontUrl = value);
+                });
+              },
+              child: Text('Dekont Yükle'),
+            ),
+            if (dekontUrl != null)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => DekontGoruntuleScreen(kayitNo: dekontUrl!)));
+                },
+                child: Text('Dekont Görüntüle'),
+              ),
+            SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () async {
+                await FirebaseFirestore.instance.collection('giderler').add({
+                  'tur': seciliTur == 'Diğer' ? digerAciklamaController.text : seciliTur,
+                  'miktar': miktarController.text,
+                  'dekontUrl': dekontUrl,
+                  'tarih': Timestamp.now(),
+                });
+                Navigator.pop(context);
+              },
+              child: Text('Onayla'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DekontYukleScreen extends StatefulWidget {
+@override
+_DekontYukleScreenState createState() => _DekontYukleScreenState();
+}
+
+class _DekontYukleScreenState extends State<DekontYukleScreen> {
+File? _image;
+final picker = ImagePicker();
+
+Future<void> _uploadImage() async {
+final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+if (pickedFile != null) {
+_image = File(pickedFile.path);
+String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+Reference storageRef = FirebaseStorage.instance.ref().child("dekontlar/$fileName");
+await storageRef.putFile(_image!);
+String downloadUrl = await storageRef.getDownloadURL();
+Navigator.pop(context, downloadUrl);
+}
+}
+
+@override
+Widget build(BuildContext context) {
+return Scaffold(
+appBar: AppBar(title: Text('Dekont Yükle')),
+body: Center(child: ElevatedButton(onPressed: _uploadImage, child: Text('Fotoğraf Seç'))),
+);
+}
+}
+
+class Reference {
+  putFile(File file) {}
+
+  getDownloadURL() {}
+}
+
+class FirebaseStorage {
+  static var instance;
+}
+
+class ImageSource {
+  static var gallery;
+}
+
+class ImagePicker {
+  pickImage({required source}) {}
+}
+
+class DekontGoruntuleScreen extends StatelessWidget {
+final String kayitNo;
+DekontGoruntuleScreen({required this.kayitNo});
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(title: Text('Dekont Görüntüle')),
+    body: Center(child: Image.network(kayitNo)),
+  );
+}
 }
 
 // ✅ Aidat Sayfası
