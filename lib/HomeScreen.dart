@@ -13,36 +13,25 @@ class HomeScreen extends StatefulWidget {
   });
 
   @override
-  _HomeScreenState createState() => _HomeScreenState(binaNo: binaNo,daireSayisi: daireSayisi,);
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? user;
-  String binaNo = "Yükleniyor...";
-  String daireSayisi = "Yükleniyor...";
-  _HomeScreenState({
-    required this.binaNo,
-    required this.daireSayisi,
-  });
 
   @override
   void initState() {
     super.initState();
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-
-      } else {
+      if (user != null) {
         setState(() {
           this.user = user;
         });
-
       }
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -85,32 +74,45 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: Icon(Icons.attach_money),
               title: Text('Gelir'),
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => GelirScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GelirScreen(
+                      binaNo: widget.binaNo,
+                      daireSayisi: widget.daireSayisi,
+                    ),
+                  ),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.money_off),
               title: Text('Gider'),
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => GiderScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => GiderScreen()),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.payment),
               title: Text('Aidat'),
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => AidatScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AidatScreen()),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.report_problem),
               title: Text('Şikayet'),
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => SikayetScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SikayetScreen()),
+                );
               },
             ),
             ListTile(
@@ -121,8 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => BinaHakkindaScreen(
-                      binaNo: binaNo,
-                      daireSayisi: daireSayisi,
+                      binaNo: widget.binaNo,
+                      daireSayisi: widget.daireSayisi,
                     ),
                   ),
                 );
@@ -150,35 +152,66 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ✅ Hesap Bilgileri Sayfası
-class HesapBilgileriScreen extends StatelessWidget {
-  final String userEmail;
-
-  HesapBilgileriScreen({required this.userEmail});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Hesap Bilgileri')),
-      body: Center(
-        child: Text('Yönetici E-mail: $userEmail'),
-      ),
-    );
-  }
-}
-
-// ✅ Gelir Sayfası
 class GelirScreen extends StatelessWidget {
+  final String binaNo;
+  final String daireSayisi;
+
+  const GelirScreen({
+    super.key,
+    required this.binaNo,
+    required this.daireSayisi,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Gelir')),
-      body: Center(child: Text('Gelir bilgileri buraya gelecek')),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('gelirler')
+            .where('binaNo', isEqualTo: binaNo)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('Bu bina için kayıtlı gelir bulunmamaktadır.'));
+          }
+
+          final gelirler = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: gelirler.length,
+            itemBuilder: (context, index) {
+              final gelir = gelirler[index];
+              final miktar = gelir['miktar'];
+              final daireNo = gelir['daireNo'];
+              final tarih = (gelir['tarih'] as Timestamp).toDate();
+
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: ListTile(
+                  title: Text('Daire No: $daireNo'),
+                  subtitle: Text('Tarih: ${tarih.toLocal()}'),
+                  trailing: Text('Miktar: ₺$miktar'),
+                ),
+              );
+            },
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => GelirEkleScreen()),
+            MaterialPageRoute(
+              builder: (context) => GelirEkleScreen(
+                binaNo: binaNo,
+                daireSayisi: daireSayisi,
+              ),
+            ),
           );
         },
         child: Icon(Icons.add),
@@ -187,7 +220,17 @@ class GelirScreen extends StatelessWidget {
   }
 }
 
+
 class GelirEkleScreen extends StatefulWidget {
+  final String binaNo;
+  final String daireSayisi;
+
+  const GelirEkleScreen({
+    super.key,
+    required this.binaNo,
+    required this.daireSayisi,
+  });
+
   @override
   _GelirEkleScreenState createState() => _GelirEkleScreenState();
 }
@@ -195,7 +238,18 @@ class GelirEkleScreen extends StatefulWidget {
 class _GelirEkleScreenState extends State<GelirEkleScreen> {
   final TextEditingController miktarController = TextEditingController();
   String? seciliDaire;
-  List<String> daireler = ['101', '102', '103', '104']; // Firebase'den çekilecek
+  List<String> daireler = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeDaireler();
+  }
+
+  void _initializeDaireler() {
+    int daireSayisiInt = int.tryParse(widget.daireSayisi) ?? 0;
+    daireler = List.generate(daireSayisiInt, (index) => (index + 1).toString());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +273,7 @@ class _GelirEkleScreenState extends State<GelirEkleScreen> {
               items: daireler.map((String daire) {
                 return DropdownMenuItem<String>(
                   value: daire,
-                  child: Text('Daire No: $daire'),
+                  child: Text(daire),
                 );
               }).toList(),
               onChanged: (String? yeniDeger) {
@@ -242,8 +296,8 @@ class _GelirEkleScreenState extends State<GelirEkleScreen> {
                   return;
                 }
 
-                // Firebase'e veri ekleme işlemi
                 await FirebaseFirestore.instance.collection('gelirler').add({
+                  'binaNo':widget.binaNo,
                   'miktar': miktarController.text,
                   'daireNo': seciliDaire,
                   'tarih': Timestamp.now(),
@@ -253,7 +307,7 @@ class _GelirEkleScreenState extends State<GelirEkleScreen> {
                   SnackBar(content: Text('Gelir başarıyla eklendi!')),
                 );
 
-                Navigator.pop(context); // Ekranı kapat
+                Navigator.pop(context);
               },
               child: Text('Onayla'),
             ),
@@ -264,7 +318,22 @@ class _GelirEkleScreenState extends State<GelirEkleScreen> {
   }
 }
 
-// ✅ Gider Sayfası
+class HesapBilgileriScreen extends StatelessWidget {
+  final String userEmail;
+
+  HesapBilgileriScreen({required this.userEmail});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Hesap Bilgileri')),
+      body: Center(
+        child: Text('Yönetici E-mail: $userEmail'),
+      ),
+    );
+  }
+}
+
 class GiderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -275,7 +344,6 @@ class GiderScreen extends StatelessWidget {
   }
 }
 
-// ✅ Aidat Sayfası
 class AidatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -286,7 +354,6 @@ class AidatScreen extends StatelessWidget {
   }
 }
 
-// ✅ Şikayet Sayfası
 class SikayetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -297,12 +364,10 @@ class SikayetScreen extends StatelessWidget {
   }
 }
 
-// ✅ Bina Hakkında Sayfası
 class BinaHakkindaScreen extends StatelessWidget {
   final String binaNo;
   final String daireSayisi;
 
-  // Constructor with required parameters
   const BinaHakkindaScreen({
     super.key,
     required this.binaNo,
@@ -312,7 +377,7 @@ class BinaHakkindaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+        appBar: AppBar(
         title: const Text('Bina Hakkında'),
       ),
       body: Center(
