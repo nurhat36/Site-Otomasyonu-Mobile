@@ -581,49 +581,97 @@ class DekontYukleScreen extends StatefulWidget {
 
 class _DekontYukleScreenState extends State<DekontYukleScreen> {
   File? _image;
-  final ImagePicker _imagePicker = ImagePicker(); // Benzersiz adlandırma
+  final ImagePicker _imagePicker = ImagePicker(); // Unique naming
+
+  Future<bool> requestStoragePermission() async {
+    // Depolama izni iste
+    PermissionStatus status = await Permission.storage.request();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Depolama izni iste')),
+    );
+
+    // İzin verildiyse true, değilse false döndür
+    if (status == PermissionStatus.granted) {
+      return true;
+    } else {
+      // İzin reddedildiyse kullanıcıya bildir
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Depolama izni gereklidir.')),
+      );
+      return false;
+    }
+  }
+
 
   Future<void> _uploadImage() async {
-    // İzin isteme
+    // Request permission
+    bool hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+      return;
+    }
 
-    // İzin verildiyse galeriye erişim
     try {
-      final pickedFile =
-          await _imagePicker.pickImage(source: ImageSource.gallery);
+      // Pick image from gallery
+      final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
-        print("oldduuuuuuuuu");
-        print(pickedFile);
-        File _image = File(pickedFile.path);
-        String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-        Reference storageRef =
-            FirebaseStorage.instance.ref().child("dekontlar/$fileName");
+        print("Image selected");
+        print(pickedFile); // This line is for debugging to verify file path
+        final imageFile = File(pickedFile.path);
+        final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+        print("File name: $fileName");
 
-        await storageRef.putFile(_image);
-        String downloadUrl = await storageRef.getDownloadURL();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Dosya başarıyla yüklendi!')),
+        // Create a reference with appropriate metadata
+        final storageRef = FirebaseStorage.instance.ref().child("dekontlar/$fileName");
+        final metadata = SettableMetadata(
+          contentType: 'image/jpeg', // Set content type based on image format
+          customMetadata: {
+            'uploaded_by': 'your_user_id', // Add custom metadata fields
+          },
         );
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  DekontGoruntuleScreen(kayitNo: downloadUrl)),
-        );
+        // Upload the image with metadata
+        final uploadTask = storageRef.putFile(imageFile,  metadata);
+        final taskSnapshot = await uploadTask.whenComplete(() => {});
+
+        if (taskSnapshot.state == TaskState.success) {
+          final downloadUrl = await storageRef.getDownloadURL();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Dekont başarıyla yüklendi!'),
+            ),
+          );
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => DekontGoruntuleScreen(kayitNo: downloadUrl)),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Dekont yükleme başarısız oldu!'),
+            ),
+          );
+          // Handle specific upload exceptions (e.g., check taskSnapshot.error)
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Herhangi bir dosya seçilmedi.')),
+          const SnackBar(
+            content: Text('Herhangi bir dosya seçilmedi.'),
+          ),
         );
       }
     } catch (e) {
-      print('Bir hata oluştu: $e');
+      print('An error occurred: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bir hata oluştu: $e')),
+        SnackBar(
+          content: Text('Dekont yükleme sırasında hata oluştu: $e'),
+        ),
       );
     }
   }
 
+  // Widget build method (assuming you have a button to call _uploadImage)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -637,6 +685,8 @@ class _DekontYukleScreenState extends State<DekontYukleScreen> {
     );
   }
 }
+
+
 
 class DekontGoruntuleScreen extends StatelessWidget {
   final String kayitNo;
