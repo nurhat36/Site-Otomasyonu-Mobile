@@ -587,7 +587,7 @@ class _DekontYukleScreenState extends State<DekontYukleScreen> {
     // Depolama izni iste
     PermissionStatus status = await Permission.storage.request();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Depolama izni iste')),
+      const SnackBar(content: Text('Depolama izni istedikte olmadı')),
     );
 
     // İzin verildiyse true, değilse false döndür
