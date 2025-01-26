@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'ManagerLogin.dart';  // Yeni yönetici sayfası
+
 import 'ResidentLogin.dart';  // Yeni bina sakini sayfası
 
 class UserType extends StatelessWidget {

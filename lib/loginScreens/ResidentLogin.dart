@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ResidentRecord.dart'; // Bina sakini kayıt ekranı
-import 'ResidentScreen.dart';
+import '../residents/ResidentScreen.dart';
 
 class ResidentLogin extends StatefulWidget {
   @override

@@ -3,8 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';  // Firebase Auth importu
 import 'package:cloud_firestore/cloud_firestore.dart';  // Firestore importu
 import 'package:flutter/material.dart';
 
-import 'HomeScreen.dart';
-import 'UserType.dart';
+import 'managers/HomeScreen.dart';
+
+import 'loginScreens/UserType.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

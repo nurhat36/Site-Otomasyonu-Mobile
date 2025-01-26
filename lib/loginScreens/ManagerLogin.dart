@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:site_otomasyonu2/HomeScreen.dart';
+import 'package:site_otomasyonu2/managers/HomeScreen.dart';
+
 import 'ManagerRecord.dart'; // Yönetici Kayıt Ekranı dosyasını ekledik
 
 class ManagerLogin extends StatefulWidget {
