@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ResidentRecord extends StatefulWidget {
+  const ResidentRecord({super.key});
+
   @override
   _ResidentRecordState createState() => _ResidentRecordState();
 }
@@ -17,9 +19,9 @@ class _ResidentRecordState extends State<ResidentRecord> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Bina Sakini Kaydı')),
+      appBar: AppBar(title: const Text('Bina Sakini Kaydı')),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -27,23 +29,23 @@ class _ResidentRecordState extends State<ResidentRecord> {
             TextField(
               controller: binaNoController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Bina No',
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
 
             // Daire No Alanı
             TextField(
               controller: daireNoController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Daire No',
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
 
             // Şifre Alanı
             TextField(
@@ -51,7 +53,7 @@ class _ResidentRecordState extends State<ResidentRecord> {
               obscureText: !_isPasswordVisible, // Şifre görünürlüğünü ayarla
               decoration: InputDecoration(
                 labelText: 'Şifre',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -64,7 +66,7 @@ class _ResidentRecordState extends State<ResidentRecord> {
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Kaydol Butonu
             ElevatedButton(
@@ -76,7 +78,7 @@ class _ResidentRecordState extends State<ResidentRecord> {
                 // Kontrol: Eğer herhangi bir alan boşsa kullanıcıya uyarı mesajı göster
                 if (binaNo.isEmpty || daireNo.isEmpty || sifre.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Lütfen tüm alanları doldurun!')),
+                    const SnackBar(content: Text('Lütfen tüm alanları doldurun!')),
                   );
                   return;
                 }
@@ -90,7 +92,7 @@ class _ResidentRecordState extends State<ResidentRecord> {
                 if (managerSnapshot.docs.isEmpty) {
                   // Eğer bina yönetici tarafından kayıtlı değilse uyarı ver
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Bu bina yönetici tarafından kayıtlı değil!')),
+                    const SnackBar(content: Text('Bu bina yönetici tarafından kayıtlı değil!')),
                   );
                   return;
                 }
@@ -105,7 +107,7 @@ class _ResidentRecordState extends State<ResidentRecord> {
                 if (residentSnapshot.docs.isNotEmpty) {
                   // Eğer aynı daire numarasıyla bir kayıt varsa uyarı ver
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Bu daire zaten kayıtlı!')),
+                    const SnackBar(content: Text('Bu daire zaten kayıtlı!')),
                   );
                   return;
                 }
@@ -119,14 +121,14 @@ class _ResidentRecordState extends State<ResidentRecord> {
 
                 // Kayıt başarılı mesajı
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Kayıt başarılı!')),
+                  const SnackBar(content: Text('Kayıt başarılı!')),
                 );
 
                 // Kayıt sonrası giriş ekranına dön
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              child: Text('Kaydol', style: TextStyle(color: Colors.white)),
+              child: const Text('Kaydol', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

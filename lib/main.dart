@@ -2,9 +2,9 @@ import 'package:firebase_core/firebase_core.dart';  // Firebase Core importu
 import 'package:firebase_auth/firebase_auth.dart';  // Firebase Auth importu
 import 'package:cloud_firestore/cloud_firestore.dart';  // Firestore importu
 import 'package:flutter/material.dart';
+import '../Sqflıte/dbHalper.dart';
 
 import 'managers/HomeScreen.dart';
-
 import 'loginScreens/UserType.dart';
 
 void main() async {
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo ',
+      title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -59,7 +59,10 @@ class _LoginPageState extends State<LoginPage> {
       debugPrint("Giriş başarılı!");
 
       // Giriş başarılı olduğunda ana ekrana yönlendir
-
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen(binaNo: '', daireSayisi: '',)), // Ana ekrana yönlendir
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Hata: $e")),
@@ -67,7 +70,6 @@ class _LoginPageState extends State<LoginPage> {
       debugPrint("Giriş hatası: $e");
     }
   }
-
 
   // Kayıt ekranına yönlendirme fonksiyonu
   void _navigateToSignUp() {
@@ -132,10 +134,7 @@ class _SignUpPageState extends State<SignUpPage> {
       );
 
       // Kullanıcı kaydını Firestore'a ekleyin
-      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
-        'email': _emailController.text,
-        'created_at': Timestamp.now(),
-      });
+      await DBHelper().addUser(userCredential.user!.uid, _emailController.text);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Kayıt başarılı!")),

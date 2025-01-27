@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../loginScreens/LoginScreen.dart';
-
+import '../Sqflıte/dbHalper.dart';
 class ResidentScreen extends StatefulWidget {
   const ResidentScreen({super.key});
 
@@ -12,11 +11,11 @@ class ResidentScreen extends StatefulWidget {
 
 class _ResidentScreenState extends State<ResidentScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? user;
   String binaNo = "Yükleniyor...";
   String daireNo = "Yükleniyor...";
   String daireSayisi = "Yükleniyor...";
+  final DBHelper _dbHelper = DBHelper();
 
   @override
   void initState() {
@@ -27,24 +26,21 @@ class _ResidentScreenState extends State<ResidentScreen> {
 
   Future<void> _getResidentBilgileri() async {
     if (user != null) {
-      DocumentSnapshot<Map<String, dynamic>> doc =
-      await _firestore.collection("sakinler").doc(user!.uid).get();
+      // Kullanıcının bina ve daire bilgilerini almak için DBHelper sınıfını kullanıyoruz
+      Map<String, String> residentInfo = await _dbHelper.getResidentInfo(user!.uid);
 
-      if (doc.exists) {
-        setState(() {
-          binaNo = doc.data()?["binaNo"] ?? "Bilinmiyor";
-          daireNo = doc.data()?["daireNo"] ?? "Bilinmiyor";
-        });
-      }
+      // Bina ve daire bilgilerini set ediyoruz
+      setState(() {
+        binaNo = residentInfo["binaNo"] ?? "Bilinmiyor";
+        daireNo = residentInfo["daireNo"] ?? "Bilinmiyor";
+      });
 
-      DocumentSnapshot<Map<String, dynamic>> binaDoc =
-      await _firestore.collection("binalar").doc(binaNo).get();
+      // Bina bilgilerini alıp daire sayısını güncelliyoruz
+      String daireSayisiResult = await _dbHelper.getBuildingDetails(binaNo);
 
-      if (binaDoc.exists) {
-        setState(() {
-          daireSayisi = binaDoc.data()?["daireSayisi"]?.toString() ?? "Bilinmiyor";
-        });
-      }
+      setState(() {
+        daireSayisi = daireSayisiResult;
+      });
     }
   }
 
@@ -149,7 +145,7 @@ class _ResidentScreenState extends State<ResidentScreen> {
   }
 }
 
-// ✅ Hesap Bilgileri Sayfası
+// Hesap Bilgileri Sayfası
 class HesapBilgileriScreen extends StatelessWidget {
   final String userEmail;
   final String binaNo;
@@ -181,7 +177,7 @@ class HesapBilgileriScreen extends StatelessWidget {
   }
 }
 
-// ✅ Gelir Sayfası
+// Gelir Sayfası
 class GelirScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -192,7 +188,7 @@ class GelirScreen extends StatelessWidget {
   }
 }
 
-// ✅ Gider Sayfası
+// Gider Sayfası
 class GiderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -203,7 +199,7 @@ class GiderScreen extends StatelessWidget {
   }
 }
 
-// ✅ Şikayet Sayfası
+// Şikayet Sayfası
 class SikayetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -214,7 +210,7 @@ class SikayetScreen extends StatelessWidget {
   }
 }
 
-// ✅ Bina Hakkında Sayfası
+// Bina Hakkında Sayfası
 class BinaHakkindaScreen extends StatelessWidget {
   final String binaNo;
   final String daireSayisi;

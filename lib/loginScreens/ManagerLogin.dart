@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:site_otomasyonu2/managers/HomeScreen.dart';
+import '../Sqflıte/dbHalper.dart';// DBHelper sınıfını dahil ettik
 
 import 'ManagerRecord.dart'; // Yönetici Kayıt Ekranı dosyasını ekledik
 
@@ -14,6 +14,8 @@ class _ManagerLoginState extends State<ManagerLogin> {
   final TextEditingController sifreController = TextEditingController();
 
   bool _isPasswordVisible = false; // Şifre görünürlüğünü kontrol eden değişken
+
+  final DBHelper _dbHelper = DBHelper(); // DBHelper örneği
 
   @override
   Widget build(BuildContext context) {
@@ -67,29 +69,25 @@ class _ManagerLoginState extends State<ManagerLogin> {
                       String binaSifresi = sifreController.text;
 
                       try {
-                        // Firestore'dan veriyi kontrol et
-                        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-                            .collection('managers')
-                            .where('binaNo', isEqualTo: binaNo)
-                            .where('binaSifresi', isEqualTo: binaSifresi)
-                            .get();
+                        // Veritabanında yöneticiyi arıyoruz
+                        Map<String, dynamic>? manager = await _dbHelper.getManagers(binaNo, binaSifresi);
 
-                        if (querySnapshot.docs.isNotEmpty) {
+                        if (manager != null) {
                           // Giriş başarılı
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Giriş başarılı!')),
                           );
 
-                          // Giriş yapılan kullanıcı bilgilerini al
-                          var managerData = querySnapshot.docs.first.data() as Map<String, dynamic>;
+                          // Manager verisini alıyoruz
+                          var managerData = manager;
 
                           // HomeScreen'e geçiş yap ve gerekli verileri aktar
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                               builder: (context) => HomeScreen(
-                                binaNo: managerData['binaNo'] ?? '',
-                                daireSayisi: managerData['daireSayisi']?.toString() ?? '',
+                                binaNo: managerData['binaNo'].toString() ?? '', // Bina numarasını alıyoruz
+                                daireSayisi: managerData['daireSayisi']?.toString() ?? '', // Daire sayısını alıyoruz
                               ),
                             ),
                           );
@@ -100,15 +98,16 @@ class _ManagerLoginState extends State<ManagerLogin> {
                           );
                         }
                       } catch (e) {
+                        print('Bir hata oluştu: ${e.toString()}');
                         // Hata durumunda kullanıcıyı bilgilendir
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Bir hata oluştu: ${e.toString()}')),
                         );
                       }
+
                     },
                     child: Text('Giriş Yap'),
                   ),
-
                 ),
                 SizedBox(width: 10),
                 Expanded(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:site_otomasyonu2/managers/HomeScreen.dart';
 import 'package:site_otomasyonu2/loginScreens/UserType.dart';
-import '../managers/HomeScreen.dart';
+import '../Sqflıte/dbHalper.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,7 +11,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -25,14 +24,32 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await _auth.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      // Kullanıcıyı veritabanında ara
+      final db = DBHelper();
+      List<Map<String, dynamic>> users = await db.getItems(); // Burada kullanıcılar sorgulanacak.
 
-    } on FirebaseAuthException catch (e) {
+      bool isUserFound = false;
+      for (var user in users) {
+        if (user['email'] == _emailController.text.trim() && user['password'] == _passwordController.text.trim()) {
+          isUserFound = true;
+          break;
+        }
+      }
+
+      if (!isUserFound) {
+        setState(() {
+          _errorMessage = 'Kullanıcı bulunamadı veya şifre yanlış';
+        });
+      } else {
+        // Giriş başarılıysa, ana ekranı göster
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen(binaNo: '', daireSayisi: '',)), // Başka bir ekran yönlendirme yapılabilir
+        );
+      }
+    } catch (e) {
       setState(() {
-        _errorMessage = e.message ?? 'Bir hata oluştu';
+        _errorMessage = e.toString();
       });
     } finally {
       setState(() {

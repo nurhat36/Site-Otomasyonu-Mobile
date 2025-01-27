@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../Sqflıte/dbHalper.dart';// DBHelper sınıfını dahil ettik
 import 'ResidentRecord.dart'; // Bina sakini kayıt ekranı
 import '../residents/ResidentScreen.dart';
 
@@ -82,15 +82,16 @@ class _ResidentLoginState extends State<ResidentLogin> {
                         SnackBar(content: Text('Lütfen tüm alanları doldurun!')),
                       );
                     } else {
-                      // Firestore'dan veri çekme ve doğrulama
-                      QuerySnapshot snapshot = await FirebaseFirestore.instance
-                          .collection('residents')
-                          .where('binaNo', isEqualTo: binaNo)
-                          .where('daireNo', isEqualTo: daireNo)
-                          .where('sifre', isEqualTo: sifre)
-                          .get();
+                      // SQLite üzerinden sorgulama
+                      var result = await DBHelper().getItems();
+                      var matchingUser = result.firstWhere(
+                            (item) => item['binaNo'] == binaNo &&
+                            item['daireNo'] == daireNo &&
+                            item['sifre'] == sifre,
+                          orElse: () => {} // Eğer eşleşme bulunmazsa, boş bir map döndürüyoruz
+                      );
 
-                      if (snapshot.docs.isNotEmpty) {
+                      if (matchingUser != null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Giriş başarılı!')),
                         );

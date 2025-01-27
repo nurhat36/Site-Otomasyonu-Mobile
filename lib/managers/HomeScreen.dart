@@ -1,12 +1,12 @@
 import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:permission_handler/permission_handler.dart';
-import '../loginScreens/LoginScreen.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../Sqflıte/dbHalper.dart';
+import '../loginScreens/LoginScreen.dart';
+import '../residents/ResidentScreen.dart'; // DBHelper sınıfını dahil ettik
 
 class HomeScreen extends StatefulWidget {
   final String binaNo;
@@ -19,34 +19,28 @@ class HomeScreen extends StatefulWidget {
   });
 
   @override
-  _HomeScreenState createState() => _HomeScreenState(
-        binaNo: binaNo,
-        daireSayisi: daireSayisi,
-      );
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  User? user;
+  late DBHelper dbHelper; // DBHelper instance
   String binaNo = "Yükleniyor...";
   String daireSayisi = "Yükleniyor...";
-
-  _HomeScreenState({
-    required this.binaNo,
-    required this.daireSayisi,
-  });
+  String userName = "Yönetici"; // Kullanıcı adı statik olarak belirlenmiş
 
   @override
   void initState() {
     super.initState();
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-      } else {
-        setState(() {
-          this.user = user;
-        });
-      }
+    dbHelper = DBHelper(); // DBHelper'ı başlatıyoruz
+    _loadData();
+  }
+
+  // Firebase'ten gelen veriler yerine, veritabanından verileri alıyoruz
+  void _loadData() async {
+    var data = await dbHelper.getManagers(widget.binaNo, ""); // Bina verisini alıyoruz
+    setState(() {
+      binaNo = widget.binaNo;
+      daireSayisi = widget.daireSayisi;
     });
   }
 
@@ -68,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icon(Icons.account_circle, size: 60, color: Colors.white),
                   SizedBox(height: 10),
                   Text(
-                    "Yönetici",
+                    userName,
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ],
@@ -78,11 +72,12 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: Icon(Icons.person),
               title: Text('Hesap Bilgileri'),
               onTap: () {
+                // Hesap bilgilerine gitmek için navigasyon
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => HesapBilgileriScreen(
-                        userEmail: user?.email ?? "Bilinmiyor"),
+                        userEmail: "Bilinmiyor", binaNo: '', daireNo: '',),
                   ),
                 );
               },
@@ -152,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: Icon(Icons.exit_to_app),
               title: Text('Çıkış Yap'),
               onTap: () async {
-                await _auth.signOut();
+                // Çıkış işlemi
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -169,24 +164,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ✅ Hesap Bilgileri Sayfası
-class HesapBilgileriScreen extends StatelessWidget {
-  final String userEmail;
-
-  HesapBilgileriScreen({required this.userEmail});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Hesap Bilgileri')),
-      body: Center(
-        child: Text('Yönetici E-mail: $userEmail'),
-      ),
-    );
-  }
-}
-
-// ✅ Gelir Sayfası
 class GelirScreen extends StatelessWidget {
   final String binaNo;
   final String daireSayisi;
@@ -201,27 +178,24 @@ class GelirScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Gelir')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('gelirler')
-            .where('binaNo', isEqualTo: binaNo)
-            .snapshots(),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _getGelirler(binaNo), // Gelirleri veritabanından çekiyoruz
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
                 child: Text('Bu bina için kayıtlı gelir bulunmamaktadır.'));
           }
-          final gelirler = snapshot.data!.docs;
+          final gelirler = snapshot.data!;
           return ListView.builder(
             itemCount: gelirler.length,
             itemBuilder: (context, index) {
               final gelir = gelirler[index];
               final miktar = gelir['miktar'];
               final daireNo = gelir['daireNo'];
-              final tarih = (gelir['tarih'] as Timestamp).toDate();
+              final tarih = DateTime.parse(gelir['tarih']);
               return Card(
                 margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: ListTile(
@@ -250,8 +224,13 @@ class GelirScreen extends StatelessWidget {
       ),
     );
   }
-}
 
+  // Gelirleri veritabanından alıyoruz
+  Future<List<Map<String, dynamic>>> _getGelirler(String binaNo) async {
+    final dbHelper = DBHelper();
+    return await dbHelper.getItems(); // DBHelper'dan gelir verilerini alıyoruz
+  }
+}
 class GelirEkleScreen extends StatefulWidget {
   final String binaNo;
   final String daireSayisi;
@@ -327,13 +306,16 @@ class _GelirEkleScreenState extends State<GelirEkleScreen> {
                   return;
                 }
 
-                // Firebase'e veri ekleme işlemi
-                await FirebaseFirestore.instance.collection('gelirler').add({
+                // Veriyi veritabanına ekliyoruz
+                final gelir = {
                   'binaNo': widget.binaNo,
                   'miktar': miktarController.text,
                   'daireNo': seciliDaire,
-                  'tarih': Timestamp.now(),
-                });
+                  'tarih': DateTime.now().toIso8601String(), // Tarih formatı
+                };
+
+                final dbHelper = DBHelper();
+                await dbHelper.insertItem(gelir); // Veriyi ekliyoruz
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Gelir başarıyla eklendi!')),
@@ -349,8 +331,6 @@ class _GelirEkleScreenState extends State<GelirEkleScreen> {
     );
   }
 }
-
-// ✅ Gider Sayfası
 class GiderScreen extends StatefulWidget {
   final String binaNo;
 
@@ -371,28 +351,74 @@ class _GiderScreenState extends State<GiderScreen> {
     required this.binaNo,
   });
 
-  void _showDekont(BuildContext context, String dekontUrl) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Dekont'),
-          content: dekontUrl.isNotEmpty
-              ? Image.network(dekontUrl)
-              : Text('Dekont bulunamadı.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Kapat'),
-            ),
-          ],
-        );
-      },
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Gider')),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _getGiderler(binaNo),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+                child: Text('Bu bina için kayıtlı gider bulunmamaktadır.'));
+          }
+          final giderler = snapshot.data!;
+          return ListView.builder(
+            itemCount: giderler.length,
+            itemBuilder: (context, index) {
+              final gider = giderler[index];
+              final miktar = gider['miktar'];
+              final kayitNo = gider['kayitNo'];
+              final tarih = DateTime.parse(gider['tarih']);
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: ListTile(
+                  title: Text('Kayıt No: $kayitNo'),
+                  subtitle: Text('Tarih: ${tarih.toLocal()}'),
+                  trailing: Text('Miktar: ₺$miktar'),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
-  @override
+  // Giderleri veritabanından alıyoruz
+  Future<List<Map<String, dynamic>>> _getGiderler(String binaNo) async {
+    final dbHelper = DBHelper();
+    return await dbHelper.getItems(); // DBHelper'dan gider verilerini alıyoruz
+  }
+}
+
+void _showDekont(BuildContext context, String dekontUrl) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('Dekont'),
+        content: dekontUrl.isNotEmpty
+            ? Image.network(dekontUrl)
+            : Text('Dekont bulunamadı.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Kapat'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+@override
   Widget build(BuildContext context) {
+    var binaNo;
     return Scaffold(
       appBar: AppBar(title: Text('Gider')),
       body: StreamBuilder<QuerySnapshot>(
@@ -444,6 +470,7 @@ class _GiderScreenState extends State<GiderScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          var binaNo;
           Navigator.push(
               context,
               MaterialPageRoute(
@@ -455,7 +482,7 @@ class _GiderScreenState extends State<GiderScreen> {
       ),
     );
   }
-}
+
 
 class GiderEkleScreen extends StatefulWidget {
   final String binaNo;
@@ -531,10 +558,11 @@ class _GiderEkleScreenState extends State<GiderEkleScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => DekontYukleScreen()))
-                    .then((value) {
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DekontYukleScreen(),
+                  ),
+                ).then((value) {
                   if (value != null) setState(() => dekontUrl = value);
                 });
               },
@@ -604,43 +632,27 @@ class _DekontYukleScreenState extends State<DekontYukleScreen> {
 
 
   Future<void> _uploadImage() async {
-    // Request permission
-    bool hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-      return;
-    }
-
     try {
-      // Pick image from gallery
+      bool hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Depolama izni verilmedi!')),
+        );
+        return;
+      }
+
       final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
-        print("Image selected");
-        print(pickedFile); // This line is for debugging to verify file path
         final imageFile = File(pickedFile.path);
         final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-        print("File name: $fileName");
-
-        // Create a reference with appropriate metadata
         final storageRef = FirebaseStorage.instance.ref().child("dekontlar/$fileName");
-        final metadata = SettableMetadata(
-          contentType: 'image/jpeg', // Set content type based on image format
-          customMetadata: {
-            'uploaded_by': 'your_user_id', // Add custom metadata fields
-          },
-        );
+        final metadata = SettableMetadata(contentType: 'image/jpeg');
 
-        // Upload the image with metadata
-        final uploadTask = storageRef.putFile(imageFile,  metadata);
+        final uploadTask = storageRef.putFile(imageFile, metadata);
         final taskSnapshot = await uploadTask.whenComplete(() => {});
 
         if (taskSnapshot.state == TaskState.success) {
           final downloadUrl = await storageRef.getDownloadURL();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Dekont başarıyla yüklendi!'),
-            ),
-          );
-
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -648,17 +660,12 @@ class _DekontYukleScreenState extends State<DekontYukleScreen> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Dekont yükleme başarısız oldu!'),
-            ),
+            const SnackBar(content: Text('Dekont yükleme başarısız oldu!')),
           );
-          // Handle specific upload exceptions (e.g., check taskSnapshot.error)
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Herhangi bir dosya seçilmedi.'),
-          ),
+          const SnackBar(content: Text('Herhangi bir dosya seçilmedi.')),
         );
       }
     } catch (e) {
@@ -671,7 +678,7 @@ class _DekontYukleScreenState extends State<DekontYukleScreen> {
     }
   }
 
-  // Widget build method (assuming you have a button to call _uploadImage)
+// Widget build method (assuming you have a button to call _uploadImage)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -686,8 +693,6 @@ class _DekontYukleScreenState extends State<DekontYukleScreen> {
   }
 }
 
-
-
 class DekontGoruntuleScreen extends StatelessWidget {
   final String kayitNo;
 
@@ -700,7 +705,7 @@ class DekontGoruntuleScreen extends StatelessWidget {
       body: Center(
         child: kayitNo.isNotEmpty
             ? Image.network(kayitNo)
-            : Text('Dekont görüntülenemedi.'),
+            : const Text('Dekont görüntülenemedi.'),
       ),
     );
   }
@@ -744,7 +749,7 @@ class BinaHakkindaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bina Hakkında'),
+        title: Text('Bina Hakkında'),
       ),
       body: Center(
         child: Column(

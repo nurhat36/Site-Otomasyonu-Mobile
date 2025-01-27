@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../Sqflıte/dbHalper.dart';// DBHelper sınıfını dahil ettik
 
 class ManagerRecord extends StatefulWidget {
   @override
@@ -21,6 +22,7 @@ class _ManagerRecordState extends State<ManagerRecord> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Bina No Alanı
             TextField(
               controller: binaNoController,
               keyboardType: TextInputType.number,
@@ -30,6 +32,8 @@ class _ManagerRecordState extends State<ManagerRecord> {
               ),
             ),
             SizedBox(height: 12),
+
+            // Daire Sayısı Alanı
             TextField(
               controller: daireSayisiController,
               keyboardType: TextInputType.number,
@@ -39,6 +43,8 @@ class _ManagerRecordState extends State<ManagerRecord> {
               ),
             ),
             SizedBox(height: 12),
+
+            // Şifre Alanı
             TextField(
               controller: binaSifresiController,
               obscureText: !_isPasswordVisible, // Şifre görünürlüğünü ayarla
@@ -58,9 +64,49 @@ class _ManagerRecordState extends State<ManagerRecord> {
               ),
             ),
             SizedBox(height: 20),
+
+            // Kayıt Butonu
             ElevatedButton(
               onPressed: () async {
-                // Kayıt işlemleri buraya gelecek
+                String binaNo = binaNoController.text;
+                String daireSayisi = daireSayisiController.text;
+                String binaSifresi = binaSifresiController.text;
+
+                // Alanlar boşsa uyarı göster
+                if (binaNo.isEmpty || daireSayisi.isEmpty || binaSifresi.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Lütfen tüm alanları doldurun!')),
+                  );
+                  return;
+                }
+
+                // DBHelper instance'ı
+                var dbHelper = DBHelper();
+
+                // Veritabanına yeni yönetici ekle
+                var data = {
+                  'binaNo': binaNo,
+                  'daireSayisi': daireSayisi,
+                  'binaSifresi': binaSifresi,
+                };
+
+                try {
+                  // Veritabanına ekleme işlemi
+                  await dbHelper.insertItem(data);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Kayıt başarılı!')),
+                  );
+
+                  // Kayıttan sonra önceki ekrana dön
+                  Navigator.pop(context);
+                } catch (e) {
+                  print('Bir hata oluştu: ${e.toString()}');
+                  // Hata durumunda kullanıcıyı bilgilendir
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Bir hata oluştu: ${e.toString()}')),
+
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
               child: Text('Kaydol', style: TextStyle(color: Colors.white)),
